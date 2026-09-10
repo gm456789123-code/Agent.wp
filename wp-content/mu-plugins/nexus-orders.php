@@ -68,8 +68,8 @@ add_action('rest_api_init', function () {
             }
 
             $product = get_post($product_id);
-            if (!$product || $product->post_type !== 'product') {
-                return new WP_Error('invalid_product', 'ไม่พบสินค้านี้', ['status' => 404]);
+            if (!$product || $product->post_type !== 'product' || $product->post_status !== 'publish') {
+                return new WP_Error('invalid_product', 'ไม่พบสินค้านี้หรือสินค้ายังไม่พร้อมจำหน่าย', ['status' => 404]);
             }
 
             $order_code = nexus_generate_order_code();
@@ -170,8 +170,11 @@ add_action('rest_api_init', function () {
             ]);
 
             return array_map(function ($order) {
-                $phone = get_post_meta($order->ID, 'phone', true);
-                $masked_phone = preg_replace('/^(\d{3})\d{3}(\d{4})$/', '$1-xxx-$2', $phone);
+                $phone = (string) get_post_meta($order->ID, 'phone', true);
+                $clean = preg_replace('/\D/', '', $phone);
+                $masked_phone = strlen($clean) >= 9
+                    ? substr($clean, 0, 3) . '-xxx-' . substr($clean, -4)
+                    : '08x-xxx-xxxx';
 
                 $seconds_ago = time() - get_post_time('U', true, $order);
                 if ($seconds_ago < 60) {

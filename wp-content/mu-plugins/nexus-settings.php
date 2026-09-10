@@ -24,7 +24,7 @@ add_action('init', function () {
     }
 
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
-    header("Access-Control-Allow-Headers: Authorization, X-WP-Nonce, Content-Type, Origin, Accept");
+    header("Access-Control-Allow-Headers: Authorization, X-WP-Nonce, Content-Type, Origin, Accept, X-Nexus-Token");
     header("Access-Control-Allow-Credentials: true");
 
     if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {

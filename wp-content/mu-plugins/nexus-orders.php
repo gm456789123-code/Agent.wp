@@ -59,6 +59,12 @@ add_action('rest_api_init', function () {
             $user = nexus_get_user_from_token($request);
             if (!$user) return new WP_Error('authentication_required', 'กรุณาเข้าสู่ระบบ', ['status' => 401]);
 
+            // Save or update phone in user's profile if empty
+            $existing_phone = get_user_meta($user->ID, 'nexus_phone', true);
+            if (empty($existing_phone)) {
+                update_user_meta($user->ID, 'nexus_phone', $phone);
+            }
+
             $order_id = wp_insert_post([
                 'post_type' => 'nexus_order',
                 'post_title' => $order_code,

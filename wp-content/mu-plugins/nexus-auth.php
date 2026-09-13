@@ -134,6 +134,38 @@ add_action('rest_api_init', function () {
         },
     ]);
 
+    register_rest_route('nexus/v1', '/profile', [
+        'methods' => 'POST',
+        'permission_callback' => 'nexus_require_member',
+        'args' => [
+            'phone' => ['required' => true, 'type' => 'string'],
+        ],
+        'callback' => function (WP_REST_Request $request) {
+            $user = nexus_get_user_from_token($request);
+            if (!$user) {
+                return new WP_Error('authentication_required', 'กรุณาเข้าสู่ระบบ', ['status' => 401]);
+            }
+
+            $phone = preg_replace('/[-\s]/', '', sanitize_text_field($request->get_param('phone')));
+            if (!preg_match('/^0[0-9]{8,9}$/', $phone)) {
+                return new WP_Error('invalid_phone', 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (10 หลัก)', ['status' => 400]);
+            }
+
+            update_user_meta($user->ID, 'nexus_phone', $phone);
+
+            return rest_ensure_response([
+                'success' => true,
+                'message' => 'บันทึกเบอร์โทรศัพท์เรียบร้อยแล้ว',
+                'user' => [
+                    'id' => $user->ID,
+                    'username' => $user->user_login,
+                    'email' => $user->user_email,
+                    'phone' => $phone,
+                ],
+            ]);
+        },
+    ]);
+
     register_rest_route('nexus/v1', '/logout', [
         'methods' => 'POST',
         'permission_callback' => '__return_true',
